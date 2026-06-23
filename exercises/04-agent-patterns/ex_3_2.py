@@ -16,28 +16,39 @@ import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from _env import get_model_id, make_client
+from _env import chat, get_model_id, make_client
 
 client = make_client()
 MODEL = get_model_id()
 
 
 def make_plan(question: str) -> list[str]:
-    """让 LLM 把 question 拆解成有序步骤列表。
+    """目标：让 LLM 把 question 拆解成有序步骤列表。
 
-    返回一个字符串列表，如 ["第一步：...", "第二步：...", ...]
+    Plan-and-Solve 的核心思路：先让模型"规划"，再让别的环节"执行"。
+    规划要拿得到，关键在于 —— 让模型输出结构化的格式（JSON），我们才能解析。
     """
-    # TODO:
-    #   1. 构造 system prompt，要求模型：
-    #      - 把用户问题拆解成 3-6 个具体执行步骤
-    #      - 只输出 JSON 数组格式，如 ["步骤1", "步骤2", ...]
-    #      - 不要输出其他内容
-    #   2. 调用 API
-    #   3. 解析返回的 JSON（注意容错：模型可能输出 ```json...``` 包裹）
-    #   4. 返回步骤列表
-    #
-    # 容错提示：可以用 content.strip().strip("```json").strip("```").strip()
-    raise NotImplementedError("请补全此函数")
+    # TODO ① 这是 Plan-and-Solve 的灵魂：写一段 system prompt，约束模型"只输出 JSON 数组"
+    system_prompt = ...  # 提示：要让模型乖乖输出可解析的格式，提示词必须包含两件事 —— (1)把问题拆成几步(如 3-6 步) (2)严格只输出 JSON 数组、不要任何多余文字或 markdown
+
+    # 调用模型（已实现）
+    msg = chat(
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": question},
+        ],
+        client=client,
+        model=MODEL,
+    )
+    content = msg.content
+
+    # 清理掉模型可能带的 ```json ... ``` 包裹（已实现，细节不是重点）
+    clean = content.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+
+    # TODO ② 把清洗后的字符串解析成 Python 列表
+    plan = ...  # 想想：刚才让模型输出的是 JSON 数组，用标准库里哪个函数可以把 JSON 字符串变成 Python 对象？
+
+    return plan
 
 
 # ============================================================

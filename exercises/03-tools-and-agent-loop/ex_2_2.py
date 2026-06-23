@@ -4,16 +4,12 @@
 
 知识点：第 8 节《ToolRegistry》
 
-要求：补全 MiniToolRegistry 类的三个方法
-  - register(func): 装饰器，把函数注册进来
-  - to_schemas(): 返回 OpenAI tools 格式的 schema 列表
-  - invoke(name, args_dict): 按名字找到函数并执行
+核心思路：让"注册一个函数 → 它就变成 LLM 可用的工具"成为可能。
+  1) register：把函数收集起来
+  2) to_schemas：把每个函数自动翻译成 LLM 看得懂的 schema
+  3) invoke：LLM 说要调用谁，就找到谁去执行
 
-提示：
-  - 用 func.__name__ 做键
-  - 用 func.__doc__ 做 description
-  - 用 func.__annotations__ 推断参数类型
-  - inspect.signature(func) 可以拿到参数默认值（判断 required）
+填空只聚焦上面 3 件事的主线，反射细节（inspect 取参数等）已经实现好了。
 """
 
 import inspect
@@ -21,40 +17,63 @@ from typing import Any, Callable
 
 
 class MiniToolRegistry:
+    # Python 类型 → JSON Schema 类型名（已提供，to_schemas 里用 self._TYPE_MAP 查表即可）
+    _TYPE_MAP = {
+        str: "string",
+        int: "integer",
+        float: "number",
+        bool: "boolean",
+    }
+
     def __init__(self):
         self._tools: dict[str, Callable] = {}
 
     def register(self, func: Callable) -> Callable:
-        """装饰器：把 func 注册到 self._tools 里，键是函数名。"""
-        # TODO: 把 func 存进 self._tools，然后原样返回 func
-        raise NotImplementedError("请补全 register")
+        """目标：把 func 收进 self._tools，键是函数名，并把 func 原样返回（这样才能当装饰器用）。"""
+        # TODO ① 把 func 放进字典，键是它的函数名
+        self._tools[...] = func  # 提示：Python 中每个函数对象都自带一个 __xxx__ 属性记录自己的名字
+        return func
 
     def to_schemas(self) -> list[dict]:
-        """生成 OpenAI tools 格式的 schema 列表。"""
+        """目标：把每个注册的函数翻译成 OpenAI tools 格式的 schema。
+
+        反射相关的细节（取签名、判断默认值）已经写好，无需深究。
+        """
         schemas = []
         for name, func in self._tools.items():
-            # TODO: 对每个注册的函数，生成一个 schema dict：
-            # {
-            #   "type": "function",
-            #   "function": {
-            #       "name": name,
-            #       "description": func.__doc__ or "",
-            #       "parameters": {
-            #           "type": "object",
-            #           "properties": { ... },   # 从 __annotations__ 推断
-            #           "required": [ ... ],      # 没有默认值的参数
-            #       }
-            #   }
-            # }
-            #
-            # 类型映射：str→"string", int→"integer", float→"number", bool→"boolean"
-            raise NotImplementedError("请补全 to_schemas")
+            sig = inspect.signature(func)  # 已实现：拿到函数签名
+
+            properties = {}
+            required = []
+            for param_name, param in sig.parameters.items():
+                # 查类型映射表，没注解就当字符串（已实现）
+                prop_type = self._TYPE_MAP.get(param.annotation, "string")
+                properties[param_name] = {"type": prop_type}
+
+                # 没有默认值 → 必填（已实现）
+                if param.default is inspect.Parameter.empty:
+                    required.append(param_name)
+
+            # TODO ② 把这个函数的"自我介绍"组装成 LLM 能看懂的 schema（description 字段就是给模型读的说明文档）
+            schema = {
+                "type": "function",
+                "function": {
+                    "name": name,
+                    "description": ...,  # 提示：函数的文档字符串（docstring）会被 Python 存到一个 __xxx__ 属性里
+                    "parameters": {
+                        "type": "object",
+                        "properties": properties,
+                        "required": required,
+                    },
+                },
+            }
+            schemas.append(schema)
         return schemas
 
     def invoke(self, name: str, args: dict) -> Any:
-        """按名字找到函数并执行，返回结果。"""
-        # TODO: 从 self._tools 里找到 name 对应的函数，传入 args 执行
-        raise NotImplementedError("请补全 invoke")
+        """目标：LLM 说要调 name 这个工具、给了 args 字典 → 这里负责真正执行。"""
+        # TODO ③ 按名字找到函数，并把 args 作为关键字参数传进去执行
+        return ...  # 提示：Python 里把 dict 拆成关键字参数有一个专门的语法 —— f(**some_dict)
 
 
 # ============================================================

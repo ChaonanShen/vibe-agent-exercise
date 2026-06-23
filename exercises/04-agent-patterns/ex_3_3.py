@@ -4,73 +4,90 @@
 
 知识点：第 14 节《Reflection 范式》
 
-要求：补全 reflect_and_revise 函数
-  - 输入：task（任务描述）
-  - 输出：最终修订后的文本
+要求：补全 draft / review / revise 三个 prompt + reflect_and_revise 主循环
 
-流程：
-  1. 起草：让 LLM 写一个初稿
-  2. 评审：让 LLM 扮演评审员，找出问题并判断是否通过
-  3. 如果没通过 → 让 LLM 修订 → 再评审 → 循环
-  4. 通过或达到 max_rounds → 返回最终版本
+Reflection 范式的精髓：**同一个 LLM，通过不同的 system prompt 扮演不同角色**
+  - draft：作者   —— 写初稿
+  - review：评审员 —— 找问题，并按约定格式输出（让我们能程序化判断是否通过）
+  - revise：修订者 —— 拿着评审意见改稿
 """
 
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from _env import get_model_id, make_client
+from _env import chat, get_model_id, make_client
 
 client = make_client()
 MODEL = get_model_id()
 
 
 def draft(task: str) -> str:
-    """让 LLM 生成初稿（已实现，不用改）。"""
-    resp = client.chat.completions.create(
-        model=MODEL,
+    """让 LLM 扮演【作者】生成初稿。"""
+    msg = chat(
         messages=[
-            {"role": "system", "content": "你是一个写作助手，根据任务要求写一段内容。"},
+            # TODO ① 让模型进入【作者】角色：根据任务要求写出一段内容
+            {"role": "system", "content": ...},  # 提示：一句话点明身份 + 要做的事即可，比如"你是…，请根据任务…"
             {"role": "user", "content": task},
         ],
-        max_tokens=500,
+        client=client,
+        model=MODEL,
     )
-    return resp.choices[0].message.content
+    return msg.content
 
 
 def review(task: str, content: str) -> tuple[bool, str]:
-    """让 LLM 评审内容，返回 (是否通过, 评审意见)。
+    """让 LLM 扮演【评审员】，返回 (是否通过, 评审意见)。
 
-    要求模型第一行回复 PASS 或 FAIL，后面是具体意见。
+    关键约定：模型必须**第一行只写 PASS 或 FAIL**，后面再写意见 —— 这样下面才能用
+    `text.split("\\n")[0]` 解析出 bool。这条格式约束就是 Reflection 能闭环的基础。
     """
-    # TODO:
-    #   1. 构造 system prompt：你是严格的评审员
-    #   2. user message 包含原始任务 + 待评审内容
-    #   3. 要求模型第一行只写 PASS 或 FAIL，第二行开始写具体意见
-    #   4. 解析返回：第一行是否包含 "PASS" → passed = True/False
-    #   5. 返回 (passed, feedback_text)
-    raise NotImplementedError("请补全此函数")
+    msg = chat(
+        messages=[
+            # TODO ② 让模型进入【评审员】角色，并强制约定输出格式
+            {"role": "system", "content": ...},  # 提示：身份之外，必须硬性约定"第一行只写 PASS 或 FAIL"——否则下面 split 首行解析不出 bool
+            {"role": "user", "content": f"任务: {task}\n\n待评审内容:\n{content}"},
+        ],
+        client=client,
+        model=MODEL,
+    )
+    text = msg.content
+
+    # 解析约定格式：第一行包含 PASS → 通过（已实现）
+    passed = "PASS" in text.split("\n")[0].upper()
+
+    return passed, text
 
 
 def revise(task: str, content: str, feedback: str) -> str:
-    """根据评审意见修订内容。"""
-    # TODO:
-    #   1. 构造 prompt：把任务、当前内容、评审意见都给模型
-    #   2. 要求模型输出修订后的完整版本
-    #   3. 返回修订后的文本
-    raise NotImplementedError("请补全此函数")
+    """让 LLM 扮演【修订者】，根据评审意见改写并输出完整版本。"""
+    msg = chat(
+        messages=[
+            # TODO ③ 让模型进入【修订者】角色：基于评审意见改写，输出修订后的完整版本
+            {"role": "system", "content": ...},  # 提示：和 draft 不同，这次有"原稿+评审意见"两份输入，要交代清楚是"参考意见改写"而非"重新写一份"
+            {"role": "user", "content": f"任务: {task}\n\n当前内容:\n{content}\n\n评审意见:\n{feedback}"},
+        ],
+        client=client,
+        model=MODEL,
+    )
+    return msg.content
 
 
 def reflect_and_revise(task: str, max_rounds: int = 3) -> str:
-    """Reflection 主循环：起草 → 评审 → 修订 → ... → 返回最终版本。"""
-    # TODO:
-    #   1. content = draft(task) — 生成初稿
-    #   2. for i in range(max_rounds):
-    #        passed, feedback = review(task, content)
-    #        if passed: break
-    #        content = revise(task, content, feedback)
-    #   3. return content
-    raise NotImplementedError("请补全此函数")
+    """Reflection 主循环 — 起草 → 评审 → 修订 → ... → 返回最终版本。"""
+    # 先生成初稿（已实现）
+    content = draft(task)
+
+    # 评审 → 不通过就修订 → 再评审，直到通过或用完轮次
+    for i in range(max_rounds):
+        passed, feedback = review(task, content)
+        if passed:
+            break
+
+        # TODO ④ 没通过：把评审意见反馈给 LLM，让它改出新版本，覆盖掉旧的 content
+        content = ...  # 想想：上面三个函数里，哪个负责"根据反馈改稿"？它需要哪三个输入？
+
+    return content
 
 
 # ============================================================

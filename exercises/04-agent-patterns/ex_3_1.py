@@ -18,19 +18,24 @@ import re
 
 
 def parse_react_output(text: str) -> tuple[str, str, str]:
-    """从 ReAct 格式文本中提取 Thought、Action、Action Input。
+    """目标：从 ReAct 格式文本中提取 Thought、Action、Action Input。
 
-    返回 (thought, action, action_input)。
-    如果某个字段没找到，对应返回空字符串 ""。
+    ReAct 的核心是让模型按"思考→行动→输入"三段式输出，下游再解析这三段去执行工具。
+    返回 (thought, action, action_input)，某段没出现就返回空串 ""。
     """
-    # TODO:
-    #   1. 用正则提取 Thought: 后面的内容（到下一个字段或结尾）
-    #   2. 用正则提取 Action: 后面的内容（一行）
-    #   3. 用正则提取 Action Input: 后面的内容（到结尾）
-    #   4. 对每个结果 strip() 去掉首尾空白
-    #
-    # 提示：可以用 re.search(r"Thought:\s*(.*?)(?=Action:|$)", text, re.DOTALL)
-    raise NotImplementedError("请补全此函数")
+    # 已实现：提取 Thought（到下一个 Action: 之前，否则到结尾）
+    m = re.search(r"Thought:\s*(.*?)(?=Action:|$)", text, re.DOTALL)
+    thought = m.group(1).strip() if m else ""
+
+    # TODO ① 仿照上面提取 Action（在 Action: 和 Action Input: 之间）
+    m = re.search(..., text, re.DOTALL)  # 想想：上一行的正则结构是不是可以直接套用？只要换两处关键字
+    action = m.group(1).strip() if m else ""
+
+    # TODO ② 提取 Action Input（Action Input: 之后到结尾的所有内容）
+    m = re.search(..., text, re.DOTALL)  # 提示：这次它是最后一段，正则末尾不需要再 "(?=...|$)" 截断
+    action_input = m.group(1).strip() if m else ""
+
+    return thought, action, action_input
 
 
 # ============================================================

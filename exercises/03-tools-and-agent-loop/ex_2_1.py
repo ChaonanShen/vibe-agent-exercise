@@ -56,32 +56,34 @@ def execute_calculator(expression: str) -> str:
 
 
 def run_tool_call(question: str) -> str:
-    """完整的 Function Calling 流程，返回模型最终回答。"""
+    """目标：完成一次完整的 Function Calling 流程，返回模型最终回答。
 
+    流程：用户提问 → 模型决定是否调工具 → 执行工具 → 结果回传 → 拿到最终回答。
+    """
     messages = [{"role": "user", "content": question}]
 
-    # TODO Step 1: 第一次调 API（带 tools 参数），让模型决定是否调用工具
-    #   msg = chat(messages, tools=TOOLS, client=client, model=MODEL)
+    # TODO ① 第一次调用：必须把工具交给模型，让它自己决定是否使用
+    msg = chat(messages, tools=..., client=client, model=MODEL)  # 把工具列表传进去
 
-    # TODO Step 2: 检查 msg.tool_calls 是否存在
-    #   如果没有 tool_calls，说明模型直接回答了，返回 msg.content
+    # TODO ② 模型没请求工具 → 直接返回它的回答
+    if not msg.tool_calls:
+        return ...  # msg.content
 
-    # TODO Step 3: 有 tool_calls → 执行工具
-    #   - 取出 tool_call = msg.tool_calls[0]
-    #   - 解析参数: args = json.loads(tool_call.function.arguments)
-    #   - 执行: result = execute_calculator(args["expression"])
+    # 取出工具调用、解析出参数（已实现）
+    tool_call = msg.tool_calls[0]
+    args = json.loads(tool_call.function.arguments)
 
-    # TODO Step 4: 把 assistant 消息和 tool 结果追加到 messages
-    #   messages.append(msg)  # assistant 消息（含 tool_calls）
-    #   messages.append({
-    #       "role": "tool",
-    #       "tool_call_id": tool_call.id,
-    #       "content": result,
-    #   })
+    # TODO ③ 核心：把解析出的参数喂给工具函数去执行
+    result = ...  # 想想：模型解析出的参数在哪个变量里？真正执行计算的函数又是谁？
 
-    # TODO Step 5: 第二次调 API，拿到最终回答
-    # msg2 = chat(messages, tools=TOOLS, client=client, model=MODEL)
-     # return msg2.content
+    # 先把模型刚刚那条回复加回历史（已实现）
+    messages.append(msg)
+    # TODO ④ 再追加一条"工具结果"消息，把下面三个 ... 替换成对应的值
+    messages.append({"role": ..., "content": ..., "tool_call_id": ...})  # 这条消息的角色是什么？要回传的内容是什么？又该如何标明它对应哪一次工具调用？
+
+    # TODO ⑤ 第二次调用：带上更新后的对话再问一次拿最终答案——这正是 Agent 循环的雏形
+    msg2 = chat(..., client=client, model=MODEL)  # 想想这次该把什么传进去？
+    return msg2.content
 
 
 # ============================================================

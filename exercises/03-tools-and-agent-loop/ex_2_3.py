@@ -17,7 +17,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from _env import get_model_id, make_client
+from _env import chat, get_model_id, make_client
 
 client = make_client()
 MODEL = get_model_id()
@@ -63,37 +63,34 @@ def execute_tool(name: str, args: dict) -> str:
 
 
 def agent_loop(question: str, max_iterations: int = 5) -> str:
-    """最小 Agent Loop：循环调用 LLM 直到它不再请求工具。
+    """目标：最小 Agent Loop — 让 LLM 反复"思考-用工具-思考"，直到给出最终答案。
 
-    返回模型的最终文本回答。
+    把上一题的"两次调用"扩展成"任意多次"，关键就是 while/for 循环 + 一个退出条件。
     """
     messages = [{"role": "user", "content": question}]
 
     for i in range(max_iterations):
-        # TODO Step 1: 调用 API（带 tools 参数）
-        #   resp = client.chat.completions.create(
-        #       model=MODEL, messages=messages, tools=TOOLS_SCHEMA
-        #   )
-        #   msg = resp.choices[0].message
-        raise NotImplementedError("请从这里开始补全")
+        # 调一次模型（已实现）
+        msg = chat(messages, tools=TOOLS_SCHEMA, client=client, model=MODEL)
 
-        # TODO Step 2: 判断 — 如果没有 tool_calls，循环结束，返回 msg.content
+        # TODO ① 循环的退出条件：模型这一轮没有再请求工具，说明它已经给出了最终回答
+        if ...:  # 想想：msg 上哪个属性能告诉我们"这次有没有要调工具"？
+            return msg.content
 
-        # TODO Step 3: 有 tool_calls — 把 assistant 消息追加到 messages
-        #   messages.append(msg)
+        # 把模型这条带工具请求的回复加回历史（已实现）
+        messages.append(msg)
 
-        # TODO Step 4: 遍历每个 tool_call，执行工具，把结果追加到 messages
-        #   for tc in msg.tool_calls:
-        #       args = json.loads(tc.function.arguments)
-        #       result = execute_tool(tc.function.name, args)
-        #       messages.append({
-        #           "role": "tool",
-        #           "tool_call_id": tc.id,
-        #           "content": result,
-        #       })
+        # TODO ② 模型一次可能并行请求多个工具，这里要遍历每一个 tool_call
+        for tc in ...:  # 想想：这些待执行的工具调用挂在 msg 的哪里？
+            # 解析参数 → 执行工具 → 把结果回传给模型（已实现）
+            args = json.loads(tc.function.arguments)
+            result = execute_tool(tc.function.name, args)
+            messages.append({"role": "tool", "tool_call_id": tc.id, "content": result})
 
-        # 然后继续循环（下一轮模型会看到工具结果，决定下一步）
+        # 继续下一轮：模型会看到刚刚的工具结果，再决定下一步
 
+    # 兜底：达到最大轮次仍未给出最终回答，返回一个提示字符串
+    # 想想（不用填）：为什么 Agent Loop 必须设这个上限？——防止模型陷入死循环、烧光 API 额度
     return "达到最大迭代次数，Agent 未能完成任务"
 
 

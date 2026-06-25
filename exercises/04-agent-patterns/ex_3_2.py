@@ -28,8 +28,8 @@ def make_plan(question: str) -> list[str]:
     Plan-and-Solve 的核心思路：先让模型"规划"，再让别的环节"执行"。
     规划要拿得到，关键在于 —— 让模型输出结构化的格式（JSON），我们才能解析。
     """
-    # TODO ① 这是 Plan-and-Solve 的灵魂：写一段 system prompt，约束模型"只输出 JSON 数组"
-    system_prompt = ...  # 提示：要让模型乖乖输出可解析的格式，提示词必须包含两件事 —— (1)把问题拆成几步(如 3-6 步) (2)严格只输出 JSON 数组、不要任何多余文字或 markdown
+    # TODO ① 写一段 system prompt，让模型拆解问题并以 JSON数组 格式输出
+    system_prompt = ...  # 【提示🔔】提示词需包含两件事：(1) 把问题拆成 3-6 个步骤 (2) 严格以 JSON数组 格式输出  （⚠️ 格式是数组，每一个元素代表其中的一个子步骤）
 
     # 调用模型（已实现）
     msg = chat(
@@ -46,7 +46,7 @@ def make_plan(question: str) -> list[str]:
     clean = content.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
 
     # TODO ② 把清洗后的字符串解析成 Python 列表
-    plan = ...  # 想想：刚才让模型输出的是 JSON 数组，用标准库里哪个函数可以把 JSON 字符串变成 Python 对象？
+    plan = ...  # 【提示🔔】用 json.loads() 把 JSON 字符串转成 Python 对象
 
     return plan
 

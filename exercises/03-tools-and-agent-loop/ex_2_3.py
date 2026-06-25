@@ -74,14 +74,14 @@ def agent_loop(question: str, max_iterations: int = 5) -> str:
         msg = chat(messages, tools=TOOLS_SCHEMA, client=client, model=MODEL)
 
         # TODO ① 循环的退出条件：模型这一轮没有再请求工具，说明它已经给出了最终回答
-        if ...:  # 想想：msg 上哪个属性能告诉我们"这次有没有要调工具"？
+        if ...:  # 【提示🔔】msg.tool_calls 为空说明模型不再请求工具，已给出最终回答
             return msg.content
 
         # 把模型这条带工具请求的回复加回历史（已实现）
         messages.append(msg)
 
         # TODO ② 模型一次可能并行请求多个工具，这里要遍历每一个 tool_call
-        for tc in ...:  # 想想：这些待执行的工具调用挂在 msg 的哪里？
+        for tc in ...:  # 【提示🔔】待执行的工具调用列表挂在 msg.tool_calls 上
             # 解析参数 → 执行工具 → 把结果回传给模型（已实现）
             args = json.loads(tc.function.arguments)
             result = execute_tool(tc.function.name, args)

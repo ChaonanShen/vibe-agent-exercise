@@ -4,7 +4,7 @@
 
 知识点：第 14 节《Reflection 范式》
 
-要求：补全 draft / review / revise 三个 prompt + reflect_and_revise 主循环
+要求：补全 draft / review / revise 三个 prompt + reflect_and_revise 主循环中的三处调用
 
 Reflection 范式的精髓：**同一个 LLM，通过不同的 system prompt 扮演不同角色**
   - draft：作者   —— 写初稿
@@ -27,7 +27,7 @@ def draft(task: str) -> str:
     msg = chat(
         messages=[
             # TODO ① 让模型进入【作者】角色：根据任务要求写出一段内容
-            {"role": "system", "content": ...},  # 提示：一句话点明身份 + 要做的事即可，比如"你是…，请根据任务…"
+            {"role": "system", "content": ...},  # 【提示🔔】一句话点明身份 + 要做的事，如"你是一位专业的写作者，请根据用户任务写出内容"
             {"role": "user", "content": task},
         ],
         client=client,
@@ -45,7 +45,7 @@ def review(task: str, content: str) -> tuple[bool, str]:
     msg = chat(
         messages=[
             # TODO ② 让模型进入【评审员】角色，并强制约定输出格式
-            {"role": "system", "content": ...},  # 提示：身份之外，必须硬性约定"第一行只写 PASS 或 FAIL"——否则下面 split 首行解析不出 bool
+            {"role": "system", "content": ...},  # 【提示🔔】身份是评审员 + 必须约定"第一行只写 PASS 或 FAIL"（否则 split 无法解析）
             {"role": "user", "content": f"任务: {task}\n\n待评审内容:\n{content}"},
         ],
         client=client,
@@ -64,7 +64,7 @@ def revise(task: str, content: str, feedback: str) -> str:
     msg = chat(
         messages=[
             # TODO ③ 让模型进入【修订者】角色：基于评审意见改写，输出修订后的完整版本
-            {"role": "system", "content": ...},  # 提示：和 draft 不同，这次有"原稿+评审意见"两份输入，要交代清楚是"参考意见改写"而非"重新写一份"
+            {"role": "system", "content": ...},  # 【提示🔔】身份是修订者，要强调"参考评审意见在原稿基础上修改"，而非另起炉灶重写
             {"role": "user", "content": f"任务: {task}\n\n当前内容:\n{content}\n\n评审意见:\n{feedback}"},
         ],
         client=client,
@@ -75,17 +75,19 @@ def revise(task: str, content: str, feedback: str) -> str:
 
 def reflect_and_revise(task: str, max_rounds: int = 3) -> str:
     """Reflection 主循环 — 起草 → 评审 → 修订 → ... → 返回最终版本。"""
-    # 先生成初稿（已实现）
-    content = draft(task)
+    # TODO ④ 先生成初稿：调用上面的 draft 拿到初始版本
+    content = ...  # 【提示🔔】函数签名：def draft(task: str) -> str
 
     # 评审 → 不通过就修订 → 再评审，直到通过或用完轮次
     for i in range(max_rounds):
-        passed, feedback = review(task, content)
+        # TODO ⑤ 评审当前版本：调用上面的 review，解包拿到 (是否通过, 评审意见)
+        passed, feedback = ...  # 【提示🔔】函数签名：def review(task: str, content: str) -> tuple[bool, str]
+
         if passed:
             break
 
-        # TODO ④ 没通过：把评审意见反馈给 LLM，让它改出新版本，覆盖掉旧的 content
-        content = ...  # 想想：上面三个函数里，哪个负责"根据反馈改稿"？它需要哪三个输入？
+        # TODO ⑥ 没通过：调用上面的 revise，根据评审意见改出新版本
+        content = ...  # 【提示🔔】函数签名：def revise(task: str, content: str, feedback: str) -> str
 
     return content
 

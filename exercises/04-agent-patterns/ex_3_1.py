@@ -28,11 +28,11 @@ def parse_react_output(text: str) -> tuple[str, str, str]:
     thought = m.group(1).strip() if m else ""
 
     # TODO ① 仿照上面提取 Action（在 Action: 和 Action Input: 之间）
-    m = re.search(..., text, re.DOTALL)  # 想想：上一行的正则结构是不是可以直接套用？只要换两处关键字
+    m = re.search(..., text, re.DOTALL)  # 【提示🔔】套用 Thought 的正则结构，把前后关键字换成 Action: 和 Action Input:
     action = m.group(1).strip() if m else ""
 
     # TODO ② 提取 Action Input（Action Input: 之后到结尾的所有内容）
-    m = re.search(..., text, re.DOTALL)  # 提示：这次它是最后一段，正则末尾不需要再 "(?=...|$)" 截断
+    m = re.search(..., text, re.DOTALL)  # 【提示🔔】Action Input 是最后一段，只需匹配 Action Input: 后面到字符串末尾
     action_input = m.group(1).strip() if m else ""
 
     return thought, action, action_input

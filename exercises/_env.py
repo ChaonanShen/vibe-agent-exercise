@@ -201,6 +201,20 @@ class Message:
         self.content = content
         self.tool_calls = tool_calls
 
+    def to_dict(self) -> dict:
+        """将 Message 转换为 OpenAI API 可接受的标准字典格式。"""
+        msg_dict: dict = {"role": "assistant", "content": self.content}
+        if self.tool_calls:
+            msg_dict["tool_calls"] = [
+                {
+                    "id": tc.id,
+                    "type": "function",
+                    "function": {"name": tc.function.name, "arguments": tc.function.arguments},
+                }
+                for tc in self.tool_calls
+            ]
+        return msg_dict
+
     def __repr__(self):
         if self.tool_calls:
             return f"Message(content={self.content!r}, tool_calls={self.tool_calls!r})"

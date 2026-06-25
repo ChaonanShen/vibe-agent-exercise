@@ -77,7 +77,7 @@ def run_tool_call(question: str) -> str:
     result = execute_calculator(...)  # 【提示🔔】工具调用的参数需要从 args 解析，关键字段是 expression，取 args["expression"]
 
     # 先把模型刚刚那条回复加回历史（已实现）
-    messages.append(msg)
+    messages.append(msg.to_dict())
     # TODO ④ 追加一条"工具结果"消息回传模型
     messages.append({"role": ..., "content": ..., "tool_call_id": ...})  # 【提示🔔】role 四选一 user/assistant/system/tool 该用哪个？ | content 该传什么（提示：上一步的 result）？ | tool_call_id 如何拿到（提示：tool_call 的哪个属性）？
 

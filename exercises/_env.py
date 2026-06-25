@@ -102,9 +102,14 @@ def chat(
     if model is None:
         model = get_model_id()
 
+    # 自动将 Message 对象转为 OpenAI API 可接受的字典格式
+    normalized_messages = [
+        m.to_dict() if isinstance(m, Message) else m for m in messages
+    ]
+
     kwargs: dict = {
         "model": model,
-        "messages": messages,
+        "messages": normalized_messages,
         "temperature": temperature,
         "stream": True,  # 强制流式（接口限制）
     }

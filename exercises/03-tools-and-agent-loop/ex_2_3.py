@@ -78,7 +78,7 @@ def agent_loop(question: str, max_iterations: int = 5) -> str:
             return msg.content
 
         # 把模型这条带工具请求的回复加回历史（已实现）
-        messages.append(msg.to_dict())
+        messages.append(msg)
 
         # TODO ② 模型一次可能并行请求多个工具，这里要遍历每一个 tool_call
         for tc in ...:  # 【提示🔔】待执行的工具调用列表挂在 msg.tool_calls 上

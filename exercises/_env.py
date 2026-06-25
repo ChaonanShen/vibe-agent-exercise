@@ -102,9 +102,14 @@ def chat(
     if model is None:
         model = get_model_id()
 
+    # 自动将 Message 对象转为 OpenAI API 可接受的字典格式
+    normalized_messages = [
+        m.to_dict() if isinstance(m, Message) else m for m in messages
+    ]
+
     kwargs: dict = {
         "model": model,
-        "messages": messages,
+        "messages": normalized_messages,
         "temperature": temperature,
         "stream": True,  # 强制流式（接口限制）
     }
@@ -200,6 +205,20 @@ class Message:
     def __init__(self, content: Optional[str], tool_calls: Optional[list] = None):
         self.content = content
         self.tool_calls = tool_calls
+
+    def to_dict(self) -> dict:
+        """将 Message 转换为 OpenAI API 可接受的标准字典格式。"""
+        msg_dict: dict = {"role": "assistant", "content": self.content}
+        if self.tool_calls:
+            msg_dict["tool_calls"] = [
+                {
+                    "id": tc.id,
+                    "type": "function",
+                    "function": {"name": tc.function.name, "arguments": tc.function.arguments},
+                }
+                for tc in self.tool_calls
+            ]
+        return msg_dict
 
     def __repr__(self):
         if self.tool_calls:

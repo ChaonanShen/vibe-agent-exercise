@@ -1,5 +1,5 @@
 """
-练习 4.1 · 上下文压缩器
+练习 5.1 · 上下文压缩器
 ========================
 
 知识点：第 19 节《上下文管理策略》
@@ -11,11 +11,7 @@
 压缩思路：把中间部分让 LLM 生成一段摘要，替换原来的多条消息。
 """
 
-import os
-import sys
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from _env import get_model_id, make_client
+from exercises._env import get_model_id, make_client
 
 client = make_client()
 MODEL = get_model_id()

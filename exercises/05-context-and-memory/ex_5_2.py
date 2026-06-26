@@ -1,5 +1,5 @@
 """
-练习 4.2 · 向量记忆存取
+练习 5.2 · 向量记忆存取
 ========================
 
 知识点：第 20 节《Memory 系统》
@@ -14,11 +14,7 @@
 """
 
 import os
-import sys
-import math
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from _env import make_client
+from exercises._env import make_client
 
 client = make_client()
 

@@ -1,16 +1,17 @@
 """
-练习 1.3 · 幻觉检测器
-======================
+练习 1.4 · 流式输出收集器
+==========================
 
-知识点：第 4 节《大模型幻觉》
+知识点：第 1 节（LLM 逐 token 生成）+ 第 3 节（token 计费）
 
-要求：补全 detect_hallucination 函数
-  - 输入：question（str）、answer（str）
-  - 输出：bool — True 表示回答中可能有幻觉，False 表示没有
+要求：补全 stream_collect 函数
+  - 输入：user_message（str）
+  - 输出：(full_text, token_count) — 完整回复文本 + 本次消耗的总 token 数
 
-实现思路：让 LLM 来判断！
-  构造一个 prompt，把 question 和 answer 喂给模型，让它判断回答中有没有编造。
-  模型回复 "是" 或 "否"，你解析成 bool 返回。
+提示：
+  - 使用 stream=True + stream_options={"include_usage": True}
+  - 逐 chunk 收集 delta.content
+  - 最后一个 chunk 的 chunk.usage 里有总 token 数
 """
 
 import os
@@ -23,16 +24,19 @@ client = make_client()
 MODEL = get_model_id()
 
 
-def detect_hallucination(question: str, answer: str) -> bool:
-    """让 LLM 判断 answer 中是否存在针对 question 的幻觉/编造内容。
-
-    返回 True = 有幻觉，False = 没有。
-    """
+def stream_collect(user_message: str) -> tuple[str, int]:
+    """流式调用 LLM，返回 (完整回复文本, 总 token 数)。"""
     # TODO:
-    #   1. 构造一个 system prompt，告诉模型它是"事实核查员"
-    #   2. 把 question 和 answer 喂进去，让模型判断有没有编造
-    #   3. 要求模型只回复 "是" 或 "否"
-    #   4. 解析回复：包含 "是" → return True，否则 return False
+    #   1. 调用 client.chat.completions.create(
+    #        model=MODEL,
+    #        messages=[{"role": "user", "content": user_message}],
+    #        stream=True,
+    #        stream_options={"include_usage": True},
+    #      )
+    #   2. 遍历 response 的每个 chunk：
+    #      - 如果 chunk.choices 且 delta.content 不为空 → 累加到 pieces 列表
+    #      - 如果 chunk.usage 不为空 → 记录 usage.total_tokens
+    #   3. 返回 ("".join(pieces), total_tokens)
     raise NotImplementedError("请补全此函数")
 
 
@@ -40,22 +44,20 @@ def detect_hallucination(question: str, answer: str) -> bool:
 # 测试（不要修改）
 # ============================================================
 if __name__ == "__main__":
-    # 测试 1：明显的幻觉（虚构的事实）
-    result = detect_hallucination(
-        question="Python 是谁发明的？",
-        answer="Python 是由 Steve Jobs 在 1985 年发明的，最初用于苹果电脑。",
-    )
-    assert result is True, "Steve Jobs 发明 Python 是明显的幻觉"
+    text, tokens = stream_collect("用一句话介绍 Python 语言")
 
-    # 测试 2：正确的事实
-    result = detect_hallucination(
-        question="Python 是谁发明的？",
-        answer="Python 是由 Guido van Rossum 在 1991 年左右发布的。",
-    )
-    assert result is False, "Guido van Rossum 发明 Python 是正确事实"
+    # 基本类型检查
+    assert isinstance(text, str), "第一个返回值应该是字符串"
+    assert isinstance(tokens, int), "第二个返回值应该是整数"
 
-    # 测试 3：返回值类型
-    result = detect_hallucination("1+1=?", "1+1=2")
-    assert isinstance(result, bool), "返回值应该是 bool"
+    # 内容检查
+    assert len(text) > 5, f"回复太短了: {text!r}"
+    assert "python" in text.lower() or "Python" in text, "回复应该提到 Python"
 
-    print("✅ PASSED: detect_hallucination 全部测试通过")
+    # token 检查
+    assert tokens > 0, "token 数应该大于 0"
+    assert tokens < 10000, "一句话回答不应该超过 10000 token"
+
+    print(f"✅ PASSED: stream_collect 测试通过")
+    print(f"   回复: {text[:50]}...")
+    print(f"   总 token: {tokens}")

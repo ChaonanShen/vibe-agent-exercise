@@ -14,7 +14,13 @@
 """
 
 import os
-from exercises._env import make_client
+import sys
+
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+
+from _env import chat, get_model_id, make_client
 
 client = make_client()
 
@@ -22,7 +28,7 @@ client = make_client()
 def get_embedding(text: str) -> list[float]:
     """调用 embedding API 获取向量（已实现，不用改）。"""
     resp = client.embeddings.create(
-        model=os.getenv("EMBEDDING_MODEL", "text-embedding-3-small"),
+        model=os.getenv("EMBEDDING_MODEL", "hunyuan-embedding"),
         input=text,
     )
     return resp.data[0].embedding

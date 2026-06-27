@@ -11,7 +11,14 @@
 压缩思路：把中间部分让 LLM 生成一段摘要，替换原来的多条消息。
 """
 
-from exercises._env import get_model_id, make_client
+import os
+import sys
+
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+
+from _env import chat, get_model_id, make_client
 
 client = make_client()
 MODEL = get_model_id()
@@ -36,7 +43,7 @@ def compress_messages(messages: list[dict], keep_last: int = 4) -> list[dict]:
     #      system prompt: "请把下面的对话摘要成 2-3 句话，保留关键事实和用户偏好。"
     #      user message: 拼好的对话文本
     #   3. 构造新的 messages 列表：
-    #      [system, {"role": "assistant", "content": f"[对话摘要] {summary}"}, *recent]
+    #      [system, {"role": "system", "content": f"[对话摘要] {summary}"}, *recent]
     #   4. 返回新列表
     raise NotImplementedError("请补全此函数")
 

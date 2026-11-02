@@ -2,6 +2,21 @@
 
 本仓库是 [**Vibe Agent Course**](https://cnb.cool/xidian/vibe-coding-learning/vibe-agent-course) 教程的配套作业。提交 PR 后由 CI 自动测评。
 
+## 前置条件
+
+1. **报名 [Agent 训练营](https://opencamp.cn/AI/camp/2026agent)**
+
+   报名入口示意：
+
+   ![报名 Agent 训练营](./assets/baoming.png)
+
+2. **在 [opencamp.cn](https://opencamp.cn/my/edit) 上完成 CNB 账号绑定**
+
+   账号绑定示意：
+
+   ![绑定 CNB 账号](./assets/bangding.png)
+
+
 ## 作业流程
 
 1. **Fork** 本仓库到你的账号下

@@ -54,7 +54,7 @@ LLM 调用需配置环境变量（可写入 `.env`）：
 |------|------|
 | `API_KEY` | LLM API Key（CNB 平台运行时自动使用 `CNB_TOKEN`） |
 | `BASE_URL` | API Base URL（CNB 平台运行时自动拼接） |
-| `MODEL_ID` | 模型 ID，默认 `glm-5.0` |
+| `MODEL_ID` | 模型 ID，默认 `deepseek-v4.1-flash` |
 
 > 在 CNB 平台内运行时，以上变量会自动注入，无需手动配置。
 

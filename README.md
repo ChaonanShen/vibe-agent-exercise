@@ -1,6 +1,6 @@
 # Vibe Agent Course · 配套作业
 
-本仓库是 [**Vibe Agent Course**](https://cnb.cool/xidian/vibe-coding-learning/vibe-agent-course) 教程的配套作业。提交 PR 后由 CI 自动测评。
+本仓库是 [**Vibe Agent Course**](https://cnb.cool/opencamp/learning-agent/vibe-agent-course) 教程的配套作业。提交 PR 后由 CI 自动测评。
 
 ## 前置条件
 
@@ -33,6 +33,10 @@
 PR 详情与测评结果：
 
 ![PR 详情](./assets/pr_detail.png)
+
+如果通过，则可以在 opencamp 的晋级榜单上看到自己的成绩，如没有，请查看上一步的流水线日志。
+
+![晋级榜单](./assets/score.png)
 
 ## 仓库结构
 

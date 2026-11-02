@@ -3,8 +3,9 @@ include:
   - https://cnb.cool/opencamp/learning-agent/vibe-agent-course-ci/-/blob/main/chapter1.yml
   - https://cnb.cool/opencamp/learning-agent/vibe-agent-course-ci/-/blob/main/chapter2.yml
   - https://cnb.cool/opencamp/learning-agent/vibe-agent-course-ci/-/blob/main/chapter3.yml
+  - https://cnb.cool/opencamp/learning-agent/vibe-agent-course-ci/-/blob/main/chapter4.yml
   - https://cnb.cool/opencamp/learning-agent/vibe-agent-course-ci/-/blob/main/chapter5.yml
-  - https://cnb.cool/opencamp/learning-agent/vibe-agent-course-ci/-/blob/main/chapter6.yml
+  - https://cnb.cool/opencamp/learning-agent/vibe-agent-course-ci/-/blob/main/final.yml
 
 $:
   vscode:

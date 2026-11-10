@@ -19,7 +19,8 @@ import tiktoken
 from dotenv import load_dotenv
 from openai import OpenAI
 
-load_dotenv()
+# 不覆盖已存在的环境变量：平台注入的 BASE_URL 等优先级高于 .env
+load_dotenv(override=False)
 
 
 class LLMClient:

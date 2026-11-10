@@ -39,6 +39,19 @@ my-agent/
 | 5 | `coding_tools/*.py` | 5 个工具函数注册到 ToolRegistry |
 | 6 | `main.py` | 把所有零件拼起来，跑通一个真任务 |
 
+## 环境变量
+
+`my-agent/.env` 已内置平台配置，通过 `${VAR}` 引用容器注入的变量，Pod 重启后无需重新创建：
+
+```
+BASE_URL=${CNB_API_ENDPOINT}/${CNB_REPO_SLUG}/-/ai-ide/v2
+API_KEY=${CNB_TOKEN}
+MODEL_ID=hy4
+```
+
+`llm.py` 中以 `load_dotenv(override=False)` 加载，**已存在的环境变量优先**。
+本地开发（不走 CNB）时，把 `.env` 里的值换成自己的地址和 Key 即可。
+
 ## 验证方式
 
 ```bash
@@ -47,3 +60,5 @@ python -m pytest tests/ -v
 ```
 
 每章只需要让当前章节的测试通过即可。
+
+

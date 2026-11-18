@@ -37,7 +37,26 @@ def stream_collect(user_message: str) -> tuple[str, int]:
     #      - 如果 chunk.choices 且 delta.content 不为空 → 累加到 pieces 列表
     #      - 如果 chunk.usage 不为空 → 记录 usage.total_tokens
     #   3. 返回 ("".join(pieces), total_tokens)
-    raise NotImplementedError("请补全此函数")
+
+    parts = []
+    total_tokens = 0
+
+    resp = client.chat.completions.create(
+      model=MODEL,
+      messages=[{"role": "user", "content": user_message}],
+      stream=True,
+      stream_options={"include_usage": True}
+    )
+
+    for chunk in resp:
+      if chunk.choices:
+        delta = chunk.choices[0].delta 
+        if delta.content:
+          parts.append(delta.content)
+      if chunk.usage:
+        total_tokens = chunk.usage.total_tokens 
+
+    return ("".join(parts), total_tokens)
 
 
 # ============================================================

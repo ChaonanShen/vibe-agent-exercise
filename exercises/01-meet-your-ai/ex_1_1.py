@@ -17,7 +17,8 @@ import tiktoken
 def count_tokens(text: str) -> int:
     """返回 text 的 token 数量（使用 cl100k_base 编码器）。"""
     # TODO: 用 tiktoken 获取编码器，encode 文本，返回长度
-    raise NotImplementedError("请补全此函数")
+    enc = tiktoken.get_encoding("cl100k_base")
+    return len(enc.encode(text))
 
 
 # ============================================================

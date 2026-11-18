@@ -27,7 +27,20 @@ def chat_with_system(system_prompt: str, user_message: str) -> str:
     #   1. 构造 messages 列表（两条：system + user）
     #   2. 调用 client.chat.completions.create(...)
     #   3. 返回 resp.choices[0].message.content
-    raise NotImplementedError("请补全此函数")
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_message}
+    ]
+    resp = client.chat.completions.create(model=MODEL, messages=messages, stream=True)
+    parts = []
+    for chunk in resp:
+        if not chunk.choices:
+            continue 
+        delta = chunk.choices[0].delta 
+
+        if delta.content:
+            parts.append(delta.content)
+    return "".join(parts)
 
 
 # ============================================================

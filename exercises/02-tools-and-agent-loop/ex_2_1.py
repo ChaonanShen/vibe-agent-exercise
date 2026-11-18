@@ -63,26 +63,26 @@ def run_tool_call(question: str) -> str:
     messages = [{"role": "user", "content": question}]
 
     # TODO ① 第一次调用：必须把工具交给模型，让它自己决定是否使用
-    msg = chat(messages, tools=..., client=client, model=MODEL)  # 把工具列表传进去
+    msg = chat(messages, tools=TOOLS, client=client, model=MODEL)  # 把工具列表传进去
 
     # TODO ② 模型没请求工具 → 直接返回它的回答（tool_calls 为空说明模型直接回复了文本）
     if not msg.tool_calls:
-        return ...  # 【提示🔔】msg 是模型返回对象，它携带了模型的回复内容，取 .content 字段
+        return msg.content  # 【提示🔔】msg 是模型返回对象，它携带了模型的回复内容，取 .content 字段
 
     # 取出工具调用、解析出参数（已实现）
     tool_call = msg.tool_calls[0]
     args = json.loads(tool_call.function.arguments)
 
     # TODO ③ 调用工具函数执行计算——表达式参数已经帮你解析好了
-    result = execute_calculator(...)  # 【提示🔔】工具调用的参数需要从 args 解析，关键字段是 expression，取 args["expression"]
+    result = execute_calculator(args)  # 【提示🔔】工具调用的参数需要从 args 解析，关键字段是 expression，取 args["expression"]
 
     # 先把模型刚刚那条回复加回历史（已实现）
     messages.append(msg)
     # TODO ④ 追加一条"工具结果"消息回传模型
-    messages.append({"role": ..., "content": ..., "tool_call_id": ...})  # 【提示🔔】role 四选一 user/assistant/system/tool 该用哪个？ | content 该传什么（提示：上一步的 result）？ | tool_call_id 如何拿到（提示：tool_call 的哪个属性）？
+    messages.append({"role": "tool", "content": result, "tool_call_id": tool_call.id})  # 【提示🔔】role 四选一 user/assistant/system/tool 该用哪个？ | content 该传什么（提示：上一步的 result）？ | tool_call_id 如何拿到（提示：tool_call 的哪个属性）？
 
     # TODO ⑤ 第二次调用：把包含工具结果的 messages 再发给模型拿最终答案——Agent 循环的雏形
-    msg2 = chat(..., client=client, model=MODEL)  # 【提示🔔】第一个参数：整个对话历史（含刚追加的工具结果）
+    msg2 = chat(messages, client=client, model=MODEL)  # 【提示🔔】第一个参数：整个对话历史（含刚追加的工具结果）
     return msg2.content
 
 

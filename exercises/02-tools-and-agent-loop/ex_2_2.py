@@ -31,7 +31,7 @@ class MiniToolRegistry:
     def register(self, func: Callable) -> Callable:
         """目标：把 func 收进 self._tools，键是函数名，并把 func 原样返回（这样才能当装饰器用）。"""
         # TODO ① 把 func 放进字典，键是它的函数名
-        self._tools[...] = func  # 【提示🔔】函数名通过 func 的 __name__ 属性获取
+        self._tools[func.__name__] = func  # 【提示🔔】函数名通过 func 的 __name__ 属性获取
         return func
 
     def to_schemas(self) -> list[dict]:
@@ -59,7 +59,7 @@ class MiniToolRegistry:
                 "type": "function",
                 "function": {
                     "name": name,
-                    "description": ...,  # 【提示🔔】函数的文档字符串（docstring）通过 func.__doc__ 获取
+                    "description": func.__doc__,  # 【提示🔔】函数的文档字符串（docstring）通过 func.__doc__ 获取
                     "parameters": {
                         "type": "object",
                         "properties": properties,
@@ -73,7 +73,7 @@ class MiniToolRegistry:
     def invoke(self, name: str, args: dict) -> Any:
         """目标：LLM 说要调 name 这个工具、给了 args 字典 → 这里负责真正执行。"""
         # TODO ③ 按名字找到函数，并把 args 作为关键字参数传进去执行
-        return ...  # 【提示🔔】从 self._tools 取出函数名对应的函数，用 ** 语法把 args 字典拆成关键字参数传进去
+        return self._tools[name](**args)  # 【提示🔔】从 self._tools 取出函数名对应的函数，用 ** 语法把 args 字典拆成关键字参数传进去
 
 
 # ============================================================

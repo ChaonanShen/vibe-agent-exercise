@@ -21,7 +21,7 @@
 
 import os
 import tempfile
-
+from pathlib import Path 
 
 def read_file(file_path: str, offset: int = 1, limit: int | None = None) -> str:
     """读取文件内容，返回带行号的字符串。
@@ -38,7 +38,25 @@ def read_file(file_path: str, offset: int = 1, limit: int | None = None) -> str:
     #   4. 按 offset 和 limit 切片（offset 是 1-based）
     #   5. 给每行加上行号前缀，格式: f"{lineno}: {line}"
     #   6. 拼接返回
-    raise NotImplementedError("请补全此函数")
+
+    file_path = Path(file_path)
+    if not file_path.exists():
+      return f"❌ 文件不存在: {file_path}"
+    
+    if not file_path.is_file():
+      return f"❌ 不是文件: {file_path}"
+
+    lines = file_path.read_text(encoding="utf-8").splitlines()  
+    
+    if limit:
+      lines = lines[offset-1:offset-1+limit]
+    else:
+      lines = lines[offset-1:]
+
+    lines = [f"{lineno+offset}: {line}" for lineno, line in enumerate(lines)]
+    result = "\n".join(lines)
+
+    return result
 
 
 # ============================================================

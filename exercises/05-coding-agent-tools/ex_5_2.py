@@ -16,6 +16,7 @@
 import os
 import tempfile
 import shutil
+from pathlib import Path 
 
 
 def write_file(file_path: str, content: str, overwrite: bool = False) -> str:
@@ -35,7 +36,16 @@ def write_file(file_path: str, content: str, overwrite: bool = False) -> str:
     #      注意：dirname 可能为空字符串（当前目录），需要判断
     #   3. 写入文件
     #   4. 返回 f"✅ 已写入 {file_path}（{len(content)} 字符）"
-    raise NotImplementedError("请补全此函数")
+    
+    file_path = Path(file_path)
+    if file_path.exists() and not overwrite:
+        return f"❌ 文件已存在: {file_path}（如需覆盖请设 overwrite=True）"
+
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+
+    file_path.write_text(content)
+
+    return f"✅ 已写入 {file_path}（{len(content)} 字符）"
 
 
 # ============================================================

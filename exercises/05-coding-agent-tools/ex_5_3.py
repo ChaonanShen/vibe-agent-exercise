@@ -36,7 +36,9 @@ def run_bash(command: str, workdir: str = ".", timeout: int = 30, max_output: in
     """
     # TODO 闸门 1：危险命令拦截
     #   遍历 DANGER_PATTERNS，如果 command 匹配任何一条 → 返回 f"❌ 拒绝执行危险命令: {command}"
-    raise NotImplementedError("请补全此函数")
+    for pat in DANGER_PATTERNS:
+        if re.search(pat, command):
+            return f"❌ 拒绝执行危险命令: {command}"
 
     # TODO 闸门 2-4：执行命令
     #   使用 subprocess.run(
@@ -47,6 +49,19 @@ def run_bash(command: str, workdir: str = ".", timeout: int = 30, max_output: in
     #   - 拼接 stdout + stderr
     #   - 如果输出长度 > max_output → 截断并附加 "\n... [输出被截断]"
     #   - 返回结果
+    try:
+        r = subprocess.run(
+            command, shell=True, cwd=workdir,
+            capture_output=True, text=True, timeout=timeout
+        )
+    except subprocess.TimeoutExpired:
+        return f"❌ 命令超时（{timeout}s）: {command}"
+
+    rst = r.stdout + r.stderr
+    if len(rst) > max_output:
+        rst = rst[:max_output] + "\n... [输出被截断]"
+    
+    return rst
 
 
 # ============================================================

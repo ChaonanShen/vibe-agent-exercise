@@ -25,7 +25,12 @@ def count_messages_tokens(messages: list[dict]) -> int:
     #   4. 返回总数
     #
     # 注意：content 可能是 None（比如 assistant 的 tool_calls 消息），跳过即可
-    raise NotImplementedError("请补全此函数")
+    ans = 0 
+    for msg in messages:
+        if msg["content"]:
+            txt = msg["content"]
+            ans += 4 + len(ENC.encode(txt))
+    return ans 
 
 
 def should_compress(messages: list[dict], threshold: int = 2000) -> bool:
@@ -34,7 +39,7 @@ def should_compress(messages: list[dict], threshold: int = 2000) -> bool:
     当总 token 数 > threshold 时返回 True。
     """
     # TODO: 调用 count_messages_tokens，跟 threshold 比较
-    raise NotImplementedError("请补全此函数")
+    return count_messages_tokens(messages) > threshold
 
 
 # ============================================================

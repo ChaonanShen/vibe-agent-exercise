@@ -23,6 +23,12 @@ from _env import chat, get_model_id, make_client
 client = make_client()
 MODEL = get_model_id()
 
+def summarize(records: list[dict]):
+    summary = chat(messages=[
+        {"role": "system", "content": "我是对话摘要助手，将用户传入的多轮对话，摘要成2-3句话，保留用户偏好、硬约束、关键事实等关键信息，忽略重复内容、客套话等不重要信息"},
+        *records,
+    ])
+    return summary 
 
 def compress_messages(messages: list[dict], keep_last: int = 4) -> list[dict]:
     """压缩 messages 列表：保留 system + 最近 keep_last 条，中间部分用摘要替换。
@@ -45,7 +51,13 @@ def compress_messages(messages: list[dict], keep_last: int = 4) -> list[dict]:
     #   3. 构造新的 messages 列表：
     #      [system, {"role": "system", "content": f"[对话摘要] {summary}"}, *recent]
     #   4. 返回新列表
-    raise NotImplementedError("请补全此函数")
+
+    summary = summarize(middle)
+    return [
+        system,
+        {"role": "system", "content": f"[对话摘要] {summary}"},
+        *recent,
+    ]
 
 
 # ============================================================

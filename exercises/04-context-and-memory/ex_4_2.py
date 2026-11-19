@@ -15,6 +15,7 @@
 
 import os
 import sys
+from math import sqrt 
 
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -42,7 +43,10 @@ def cosine_similarity(a: list[float], b: list[float]) -> float:
     #   3. 计算 norm_b = sqrt(sum(x*x for x in b))
     #   4. 返回 dot / (norm_a * norm_b)
     #   5. 注意边界：如果 norm 为 0，返回 0.0
-    raise NotImplementedError("请补全此函数")
+    dot = sum(x*y for x, y in zip(a, b))
+    na = sqrt(sum(x*x for x in a))
+    nb = sqrt(sum(y*y for y in b))
+    return dot / (na * nb) if na * nb != 0 else 0
 
 
 class VectorMemory:
@@ -54,7 +58,8 @@ class VectorMemory:
         # TODO:
         #   1. 调用 get_embedding(text) 获取向量
         #   2. 把 (text, embedding) 追加到 self._entries
-        raise NotImplementedError("请补全 add")
+        emb = get_embedding(text)
+        self._entries.append((text, emb))
 
     def search(self, query: str, k: int = 3) -> list[tuple[float, str]]:
         """检索与 query 最相似的 k 条记忆。
@@ -66,8 +71,10 @@ class VectorMemory:
         #   2. 对 self._entries 中每条计算 cosine_similarity
         #   3. 按相似度降序排序
         #   4. 返回前 k 条 [(similarity, text), ...]
-        raise NotImplementedError("请补全 search")
-
+        q_emb = get_embedding(query)
+        entries = [(cosine_similarity(e[1], q_emb), e[0]) for e in self._entries]
+        entries.sort(key=lambda e: e[0], reverse=True)
+        return entries[:k] if entries else []
 
 # ============================================================
 # 测试（不要修改）

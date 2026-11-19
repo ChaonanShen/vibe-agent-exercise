@@ -21,13 +21,16 @@ from _env import chat, get_model_id, make_client
 client = make_client()
 MODEL = get_model_id()
 
+DRAFT_PROMPT = """
+你是一位专业的写作者，请根据用户任务写出内容
+"""
 
 def draft(task: str) -> str:
     """让 LLM 扮演【作者】生成初稿。"""
     msg = chat(
         messages=[
             # TODO ① 让模型进入【作者】角色：根据任务要求写出一段内容
-            {"role": "system", "content": ...},  # 【提示🔔】一句话点明身份 + 要做的事，如"你是一位专业的写作者，请根据用户任务写出内容"
+            {"role": "system", "content": DRAFT_PROMPT},  # 【提示🔔】一句话点明身份 + 要做的事，如"你是一位专业的写作者，请根据用户任务写出内容"
             {"role": "user", "content": task},
         ],
         client=client,
@@ -35,6 +38,13 @@ def draft(task: str) -> str:
     )
     return msg.content
 
+REVIEW_PROMPT = """
+你是一位评审员，你将对“任务”以及已生成的内容“待评审内容”进行评审。并且你要严格遵照以下“输出格式约定”来写。
+
+输出格式约定：
+- 第一行只写 PASS 或 FAIL 这两个判断，不写其他多余的东西
+- 其他具体评审意见，从第二行开始
+"""
 
 def review(task: str, content: str) -> tuple[bool, str]:
     """让 LLM 扮演【评审员】，返回 (是否通过, 评审意见)。
@@ -45,7 +55,7 @@ def review(task: str, content: str) -> tuple[bool, str]:
     msg = chat(
         messages=[
             # TODO ② 让模型进入【评审员】角色，并强制约定输出格式
-            {"role": "system", "content": ...},  # 【提示🔔】身份是评审员 + 必须约定"第一行只写 PASS 或 FAIL"（否则 split 无法解析）
+            {"role": "system", "content": REVIEW_PROMPT},  # 【提示🔔】身份是评审员 + 必须约定"第一行只写 PASS 或 FAIL"（否则 split 无法解析）
             {"role": "user", "content": f"任务: {task}\n\n待评审内容:\n{content}"},
         ],
         client=client,
@@ -59,12 +69,18 @@ def review(task: str, content: str) -> tuple[bool, str]:
     return passed, text
 
 
+REVISE_PROMPT = """"
+你是一位修订者
+目前，针对“任务”，已经有相关输出生成位于“当前内容”，也有相应“评审意见”
+你要参考评审意见，在原稿的基础上修改，并完整输出新的内容。直接输出修正后的内容即可，不需要附带其他东西。
+"""
+
 def revise(task: str, content: str, feedback: str) -> str:
     """让 LLM 扮演【修订者】，根据评审意见改写并输出完整版本。"""
     msg = chat(
         messages=[
             # TODO ③ 让模型进入【修订者】角色：基于评审意见改写，输出修订后的完整版本
-            {"role": "system", "content": ...},  # 【提示🔔】身份是修订者，要强调"参考评审意见在原稿基础上修改"，而非另起炉灶重写
+            {"role": "system", "content": REVISE_PROMPT},  # 【提示🔔】身份是修订者，要强调"参考评审意见在原稿基础上修改"，而非另起炉灶重写
             {"role": "user", "content": f"任务: {task}\n\n当前内容:\n{content}\n\n评审意见:\n{feedback}"},
         ],
         client=client,
@@ -76,18 +92,18 @@ def revise(task: str, content: str, feedback: str) -> str:
 def reflect_and_revise(task: str, max_rounds: int = 3) -> str:
     """Reflection 主循环 — 起草 → 评审 → 修订 → ... → 返回最终版本。"""
     # TODO ④ 先生成初稿：调用上面的 draft 拿到初始版本
-    content = ...  # 【提示🔔】函数签名：def draft(task: str) -> str
+    content = draft(task)  # 【提示🔔】函数签名：def draft(task: str) -> str
 
     # 评审 → 不通过就修订 → 再评审，直到通过或用完轮次
     for i in range(max_rounds):
         # TODO ⑤ 评审当前版本：调用上面的 review，解包拿到 (是否通过, 评审意见)
-        passed, feedback = ...  # 【提示🔔】函数签名：def review(task: str, content: str) -> tuple[bool, str]
+        passed, feedback = review(task, content)  # 【提示🔔】函数签名：def review(task: str, content: str) -> tuple[bool, str]
 
         if passed:
             break
 
         # TODO ⑥ 没通过：调用上面的 revise，根据评审意见改出新版本
-        content = ...  # 【提示🔔】函数签名：def revise(task: str, content: str, feedback: str) -> str
+        content = revise(task, content, feedback)  # 【提示🔔】函数签名：def revise(task: str, content: str, feedback: str) -> str
 
     return content
 
@@ -102,7 +118,8 @@ if __name__ == "__main__":
     assert len(result) > 20, f"结果太短了: {result!r}"
     assert "def" in result or "fib" in result.lower(), "结果应该包含函数定义"
     print(f"[测试1] 最终结果 ({len(result)} 字符):")
-    print(result[:200] + "..." if len(result) > 200 else result)
+    # print(result[:200] + "..." if len(result) > 200 else result)
+    print(result)
 
     # 测试 2：review 函数基本工作
     passed, feedback = review("写一首五言绝句", "床前明月光，疑是地上霜。举头望明月，低头思故乡。")

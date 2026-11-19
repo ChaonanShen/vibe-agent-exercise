@@ -29,7 +29,11 @@ def make_plan(question: str) -> list[str]:
     规划要拿得到，关键在于 —— 让模型输出结构化的格式（JSON），我们才能解析。
     """
     # TODO ① 写一段 system prompt，让模型拆解问题并以 JSON数组 格式输出
-    system_prompt = ...  # 【提示🔔】提示词需包含两件事：(1) 把问题拆成 3-6 个步骤 (2) 严格以 JSON数组 格式输出  （⚠️ 格式是数组，每一个元素代表其中的一个子步骤）
+    # 【提示🔔】提示词需包含两件事：(1) 把问题拆成 3-6 个步骤 (2) 严格以 JSON数组 格式输出  （⚠️ 格式是数组，每一个元素代表其中的一个子步骤）
+    system_prompt =  """
+    你是一个任务规划器，将用户问题拆成子任务列表
+    要求把问题拆成3-6个步骤，并且严格以JSON数组格式输出（每项都是一个字符串，表示一个子任务）
+    """
 
     # 调用模型（已实现）
     msg = chat(
@@ -46,7 +50,8 @@ def make_plan(question: str) -> list[str]:
     clean = content.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
 
     # TODO ② 把清洗后的字符串解析成 Python 列表
-    plan = ...  # 【提示🔔】用 json.loads() 把 JSON 字符串转成 Python 对象
+    # 【提示🔔】用 json.loads() 把 JSON 字符串转成 Python 对象
+    plan = json.loads(clean)
 
     return plan
 
@@ -57,6 +62,7 @@ def make_plan(question: str) -> list[str]:
 if __name__ == "__main__":
     # 测试 1：简单任务
     plan = make_plan("帮我写一个 Python 的冒泡排序并测试它")
+    # print(plan)
     assert isinstance(plan, list), f"应该返回列表，实际: {type(plan)}"
     assert len(plan) >= 2, f"至少应该有 2 步，实际: {len(plan)} 步"
     assert all(isinstance(s, str) for s in plan), "每个步骤应该是字符串"
@@ -66,6 +72,7 @@ if __name__ == "__main__":
 
     # 测试 2：复杂任务
     plan2 = make_plan("查北京和上海的天气，对比哪个更适合周末出游，给出推荐理由")
+    # print(plan2)
     assert len(plan2) >= 3, f"复杂任务至少 3 步，实际: {len(plan2)} 步"
     print(f"\n[测试2] 计划有 {len(plan2)} 步:")
     for i, step in enumerate(plan2, 1):

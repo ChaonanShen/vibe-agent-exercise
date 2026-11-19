@@ -28,11 +28,11 @@ def parse_react_output(text: str) -> tuple[str, str, str]:
     thought = m.group(1).strip() if m else ""
 
     # TODO ① 仿照上面提取 Action（在 Action: 和 Action Input: 之间）
-    m = re.search(..., text, re.DOTALL)  # 【提示🔔】套用 Thought 的正则结构，把前后关键字换成 Action: 和 Action Input:
+    m = re.search(r"Action:\s*(.*?)(?=Action Input:|$)", text, re.DOTALL)  # 【提示🔔】套用 Thought 的正则结构，把前后关键字换成 Action: 和 Action Input:
     action = m.group(1).strip() if m else ""
 
     # TODO ② 提取 Action Input（Action Input: 之后到结尾的所有内容）
-    m = re.search(..., text, re.DOTALL)  # 【提示🔔】Action Input 是最后一段，只需匹配 Action Input: 后面到字符串末尾
+    m = re.search(r"Action Input:\s*(.*)", text, re.DOTALL)  # 【提示🔔】Action Input 是最后一段，只需匹配 Action Input: 后面到字符串末尾
     action_input = m.group(1).strip() if m else ""
 
     return thought, action, action_input
@@ -48,6 +48,7 @@ Action: get_weather
 Action Input: {"city": "北京"}"""
 
     t, a, ai = parse_react_output(text1)
+    print(t, a, ai, sep="\n")
     assert "天气" in t, f"Thought 应该包含'天气'，实际: {t!r}"
     assert a == "get_weather", f"Action 应该是 get_weather，实际: {a!r}"
     assert "北京" in ai, f"Action Input 应该包含'北京'，实际: {ai!r}"

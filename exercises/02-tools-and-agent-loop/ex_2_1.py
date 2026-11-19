@@ -74,7 +74,7 @@ def run_tool_call(question: str) -> str:
     args = json.loads(tool_call.function.arguments)
 
     # TODO ③ 调用工具函数执行计算——表达式参数已经帮你解析好了
-    result = execute_calculator(args)  # 【提示🔔】工具调用的参数需要从 args 解析，关键字段是 expression，取 args["expression"]
+    result = execute_calculator(args["expression"])  # 【提示🔔】工具调用的参数需要从 args 解析，关键字段是 expression，取 args["expression"]
 
     # 先把模型刚刚那条回复加回历史（已实现）
     messages.append(msg)
